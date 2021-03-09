@@ -1,0 +1,19 @@
+var url:String = "http://localhost:1284/update?data=" + encodeURIComponent(jackboxgames.utils.JSON.serialize({
+            "userId":_userId.val,
+            "index":_index.val,
+            "name":_name.val,
+            "color":ColorUtil.rgbToHex(this.color),
+            "health":param1.characterCurrentHealth,
+            "max":param1.characterMaxHealth,
+            "moneyGauntlet":this.gauntletStats.money,
+            "killsGauntlet":this.gauntletStats.kills,
+            "deathsGauntlet":this.gauntletStats.deaths,
+            "damageGauntlet":this.gauntletStats.damage,
+            "moneyChallenge":this.challengeStats.money,
+            "killsChallenge":this.challengeStats.kills,
+            "deathsChallenge":this.challengeStats.deaths,
+            "damageChallenge":this.challengeStats.damage
+         }));
+         var request:URLRequest = new URLRequest(url);
+         var loader:URLLoader = new URLLoader();
+         loader.load(request);
