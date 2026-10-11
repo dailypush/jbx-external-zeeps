@@ -1,10 +1,32 @@
 # jbx-external-zeeps
-IMPORTANT: Create a Browser / BrowserSource in your streaming software with the URL: `http://localhost:1284/`
 
-ENSURE that the Browser SIZE is EXACTLY **1280x115**, but you can then move and scale it to fit your setup width after setting this.
+A Zeeple Dome overlay for streaming browser sources. The modified game sends player stats to the local server using the request shown in `html/req.txt`.
 
-The browser will appear empty aside from an initial bar that may slide up, but the bar will come down during challenges.
+## Setup
 
----
+Install Node.js 18 or newer, then run:
 
-Note that the bar will persist if you exit or close the game in the middle of a challenge, but will fix itself if players start joining again. (I'll fix this soon)
+```sh
+npm ci
+npm start
+```
+
+Create a Browser / BrowserSource in your streaming software with the URL `http://localhost:1284/`. Set its browser size to **1280 × 115**, then move and scale it to fit your setup.
+
+The overlay starts transparent and slides into view during challenges when players have health. Multiple browser sources can connect at once. Sources automatically reconnect after a server restart and restore the current player stats.
+
+If the game stops sending updates, the server clears the overlay after two minutes. Adjust this timeout if your game has longer quiet periods:
+
+```sh
+STALE_TIMEOUT_MS=300000 npm start
+```
+
+Set `STALE_TIMEOUT_MS=0` to disable expiry. An explicit update with `{"reset":true}` clears the overlay immediately. `PORT` changes the server port; update both the game request URL and browser source URL to match.
+
+## Development
+
+```sh
+npm test
+```
+
+Player updates use `GET /update?data=<URL-encoded JSON>`. Valid updates return HTTP 204; malformed updates return HTTP 400. Player indices are 0–5, colors are six-digit hex strings with a leading `#`, and health, maximum health, and gauntlet money must be finite numbers. Health and maximum health must be nonnegative.
