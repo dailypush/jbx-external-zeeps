@@ -96,3 +96,57 @@ test('expires stale state, while repeated updates keep it alive', async (t) => {
     const fresh = await f.connect();
     assert.deepEqual(fresh.messages[0].players, []);
 });
+
+test('streamer controls preview, clear, report status, and protect live game data', async (t) => {
+    const f = await fixture(t);
+    const control = await fetch(`${f.url}/control/`);
+    assert.equal(control.status, 200);
+    assert.match(await control.text(), /Preview sample players/);
+    const post = (route, body = {}) => fetch(`${f.url}/api/${route}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const status = () => fetch(`${f.url}/api/status`).then((response) => response.json());
+    assert.equal((await status()).mode, 'idle');
+    const client = await f.connect();
+    assert.equal((await post('demo')).status, 204);
+    await waitFor(() => client.messages.some((message) => message.players?.length === 6));
+    assert.equal((await status()).mode, 'demo');
+    assert.equal((await status()).playerCount, 6);
+    // Even a non-zero player index replaces all demo data immediately.
+    await f.update({ ...player, index: 2 });
+    assert.equal((await status()).mode, 'game');
+    assert.equal((await status()).playerCount, 1);
+    assert.equal((await post('demo')).status, 409);
+    assert.equal((await status()).playerCount, 1);
+    assert.equal((await post('reset')).status, 204);
+    assert.equal((await status()).mode, 'idle');
+    assert.equal((await status()).playerCount, 0);
+});
+
+test('settings persist before activation, reschedule expiry, and reject invalid requests', async (t) => {
+    const saved = [];
+    const f = await fixture(t, { persistSettings: (settings) => saved.push(settings) });
+    const post = (body, headers = { 'Content-Type': 'application/json' }) => fetch(`${f.url}/api/settings`, {
+        method: 'POST', headers, body: JSON.stringify(body)
+    });
+    for (const value of [-1, '100', null, 2147483648, 1.5]) {
+        assert.equal((await post({ staleTimeoutMs: value })).status, 400);
+    }
+    assert.equal((await post({ staleTimeoutMs: 0 }, { 'Content-Type': 'text/plain' })).status, 415);
+    assert.equal((await post({ staleTimeoutMs: 0 }, { 'Content-Type': 'application/json', Origin: 'https://unrelated.example' })).status, 403);
+    assert.equal((await post({ staleTimeoutMs: 0 })).status, 200);
+    assert.deepEqual(saved, [{ staleTimeoutMs: 0 }]);
+    const client = await f.connect();
+    await f.update(player);
+    assert.equal((await post({ staleTimeoutMs: 50 })).status, 200);
+    await waitFor(() => client.messages.some((message) => message.reset));
+});
+
+test('failed settings writes preserve the previous timeout', async (t) => {
+    const f = await fixture(t, { persistSettings: () => { throw new Error('disk error'); } });
+    const response = await fetch(`${f.url}/api/settings`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ staleTimeoutMs: 0 })
+    });
+    assert.equal(response.status, 500);
+    assert.equal((await fetch(`${f.url}/api/status`).then((r) => r.json())).staleTimeoutMs, 120000);
+});

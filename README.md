@@ -2,7 +2,24 @@
 
 Show player names, health, and earnings from Jackbox's Zeeple Dome (“Zeeps”) on your stream.
 
-**New here? Follow the steps below in order.** You only install the tools once; after that, start the overlay server before each session.
+**The easiest way to start:** install Node.js LTS, extract this project, and open the launcher for your computer. It installs the required packages on first use and opens your streamer controls.
+
+## Quick start for streamers
+
+1. Install [Node.js LTS](https://nodejs.org/en/download).
+2. [Download this project](https://github.com/dailypush/jbx-external-zeeps) with **Code → Download ZIP**, then extract it.
+3. Double-click **`Start Zeeps.cmd`** on Windows or **`Start Zeeps.command`** on macOS. Leave the command window open. First launch needs internet access to install packages; later launches reuse them unless the package files change.
+4. In the control page that opens, click **Copy URL** and add it to an OBS Browser Source with width **1280** and height **115**.
+5. Click **Preview sample players** to check your layout, then **Clear overlay**.
+6. Install the modified game file using [step 5 below](#5-install-the-modified-game-file), then start a Zeeple Dome challenge.
+
+The control page is [http://localhost:1284/control/](http://localhost:1284/control/). It shows connection status, previews the overlay, clears player data, and saves the inactivity timeout for your next session. The transparent OBS overlay is still [http://localhost:1284/](http://localhost:1284/); use that URL for your stream.
+
+**Mac launcher will not open?** Follow the Terminal instructions in step 2, then run `bash "./Start Zeeps.command"`. On Linux, use `npm start` from the extracted folder.
+
+Opening the launcher again while its server is running opens the existing control page. To stop the server, press **Ctrl+C in its original command window**.
+
+Need more detail? The complete walkthrough follows.
 
 ## What you need
 
@@ -46,19 +63,13 @@ Both commands should print a version number. If either is “not recognized” o
 
 ## 3. Install and start the overlay
 
-Enter:
-
-```sh
-npm ci
-```
-
-This downloads the required packages. Wait until it finishes and the command prompt returns. You only need to repeat it after downloading an updated project or removing the `node_modules` folder.
-
-Then enter:
+Double-click the launcher for your operating system, or enter this command in the project folder:
 
 ```sh
 npm start
 ```
+
+First startup installs the required packages automatically, then starts the server and opens your streamer control page. Wait for installation to finish; an internet connection is needed for this first step. Later launches reuse the installed packages unless the package files change.
 
 You should see:
 
@@ -87,12 +98,14 @@ These fields are described in the [official OBS Browser Source guide](https://ob
 
 ### Test the overlay before modifying the game
 
-With the server running and OBS open, use these links in your regular web browser:
+Open the [streamer control page](http://localhost:1284/control/), click **Preview sample players**, and check OBS. Click **Clear overlay** when finished. The control page protects active game data by refusing to start a demo until you clear it. Live updates automatically replace any sample players.
+
+If you prefer direct test links, with the server running and OBS open, use these links in your regular web browser:
 
 1. [Show a demo player](http://localhost:1284/update?data=%7B%22index%22%3A0%2C%22userId%22%3A%22setup-demo%22%2C%22name%22%3A%22Demo%20Player%22%2C%22color%22%3A%22%2366CCFF%22%2C%22health%22%3A75%2C%22max%22%3A100%2C%22moneyGauntlet%22%3A1234%7D). This sends sample stats to the server; look for “Demo Player” in OBS or the overlay browser tab.
 2. [Clear the demo](http://localhost:1284/update?data=%7B%22reset%22%3Atrue%7D) when you finish.
 
-The update links may leave the browser on its current page or show an empty response. The visible result appears in the overlay. The demo clears automatically after two minutes without updates. Run this check while the game is closed because it temporarily changes the displayed player data.
+The update links may leave the browser on its current page or show an empty response. The visible result appears in the overlay. With the default inactivity setting, the demo clears after two minutes without updates. Run this check while the game is closed because it temporarily changes the displayed player data.
 
 If the demo appears, the server and browser source are working. The next step connects the actual game.
 
@@ -111,12 +124,12 @@ The overlay should slide into view when players have health. You do not open the
 
 ## Each time you stream
 
-1. Open a command window in the project folder and run `npm start`.
+1. Open **Start Zeeps.cmd** (Windows) or **Start Zeeps.command** (Mac). Alternatively, run `npm start` in the project folder.
 2. Open OBS and select your scene with the Zeeps Overlay source.
 3. Launch Zeeple Dome and begin a challenge.
 4. When finished, press Ctrl+C in the server window.
 
-Browser sources reconnect automatically if the server restarts. If the game stops sending updates, the overlay clears after two minutes.
+Browser sources reconnect automatically if the server restarts. With the default inactivity setting, the overlay clears after two minutes without game updates.
 
 ## Troubleshooting
 
@@ -131,7 +144,7 @@ Browser sources reconnect automatically if the server restarts. If the game stop
 | OBS is blank before a challenge | This is normal. Use the demo links above to check the setup. |
 | The demo works, but the game never appears | Confirm the modified SWF is installed in the correct game folder and restart the game. Updates or file verification may restore the original SWF. Compatibility with your game version may need investigation. |
 | The overlay is cropped or misplaced | Set the Browser Source to 1280 × 115, put it above game capture, and reposition it on the OBS canvas. |
-| The overlay stays visible after exiting the game | Wait two minutes, or use the “Clear the demo” link above to clear the current overlay data immediately. |
+| The overlay stays visible after exiting the game | Wait for the inactivity timeout, or click **Clear overlay** in the control page. |
 | The game has problems after replacing the SWF | Close the game and restore your backed-up original file. |
 
 To get help, include your operating system, game/store version, whether the demo works, and the exact error text from the server window.
@@ -141,6 +154,10 @@ To get help, include your operating system, game/store version, whether the demo
 Close the game. Copy your backed-up original `SlingShoot.swf` into its original location, replacing the modified file. You can keep the overlay project folder for later use.
 
 ## Optional: change the inactivity timeout
+
+In the control page, choose **2 minutes**, **5 minutes**, **10 minutes**, or **Keep until cleared**, then click **Save**. Changes apply immediately and are stored in `settings.json` for future sessions.
+
+Advanced users can override the saved value at startup with the commands below. If you set `STALE_TIMEOUT_MS`, that value overrides saved settings each time you launch from that shell.
 
 The default is **120,000 milliseconds (two minutes)**. If the overlay disappears during long quiet periods, you can increase it. Stop the current server with Ctrl+C before using one of these commands.
 
@@ -157,9 +174,11 @@ npm start
 STALE_TIMEOUT_MS=300000 npm start
 ```
 
-Set the value to `0` to disable automatic clearing. In Windows Command Prompt, run `set "STALE_TIMEOUT_MS="` before starting again to return to the default; on macOS/Linux, start with plain `npm start` in a shell without that variable set.
+Set the value to `0` to disable automatic clearing. In Windows Command Prompt, run `set "STALE_TIMEOUT_MS="` before starting again to use the saved setting; on macOS/Linux, start with plain `npm start` in a shell without that variable set.
 
 ## For developers
+
+`npm run serve` starts the server without opening a browser or checking dependency installation.
 
 Run the tests with:
 

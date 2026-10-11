@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Zeeps · Streamer controls</title>
+    <link rel="stylesheet" href="control.css">
+    <script src="control.js" defer></script>
+</head>
+<body>
+    <main>
+        <header><span class="eyebrow">ZEEPLE DOME STREAMING OVERLAY</span><h1>Ready for your next round.</h1><p>Set up once. Keep this window handy when you stream.</p></header>
+        <section class="status" aria-label="Connection status"><span id="indicator" class="dot"></span><div><strong id="status">Connecting to your overlay…</strong><p id="detail">Keep the launcher window open while streaming.</p></div><span id="views"></span></section>
+        <section class="card">
+            <div class="section-heading"><span class="number">1</span><div><h2>Add to OBS</h2><p>Create a Browser Source with Local file unchecked.</p></div></div>
+            <label for="overlay-url">Browser Source URL</label>
+            <div class="url-row"><input id="overlay-url" readonly><button id="copy">Copy URL</button><a id="open-overlay" target="_blank" rel="noopener">Open overlay ↗</a></div>
+            <div class="dimensions"><span>Width <strong>1280</strong></span><span>Height <strong>115</strong></span><span>Place above game capture</span></div>
+        </section>
+        <section class="card">
+            <div class="section-heading"><span class="number">2</span><div><h2>Check your overlay</h2><p>The overlay stays hidden until players have health. Preview sample players to check placement.</p></div></div>
+            <div class="preview" id="preview"><iframe id="overlay-preview" src="/" title="Live overlay preview" width="1280" height="115"></iframe><span class="preview-caption">Live preview · transparent areas shown as a grid</span></div>
+            <div class="actions"><button id="demo">Preview sample players</button><button id="clear" class="secondary">Clear overlay</button></div>
+            <p class="hint">Sample players also appear in OBS. Clear them before playing. Live game updates automatically replace the preview.</p>
+        </section>
+        <section class="card">
+            <div class="section-heading"><span class="number">3</span><div><h2>Connect the game</h2><p>First-time setup only. Close the game before changing its files.</p></div></div>
+            <ol><li>Open the game's installation folder and find <strong>SlingShoot.swf</strong>.</li><li>Copy the original into a separate backup folder.</li><li>Replace it with the <strong>SlingShoot.swf</strong> included in this project's folder.</li><li>Launch Zeeple Dome normally and start a challenge.</li></ol>
+            <p class="hint">The modified file's compatibility with your game version still needs checking. If the game has trouble, restore your backup. See README.md in the project folder for the full setup and troubleshooting guide.</p>
+        </section>
+        <section class="card settings">
+            <div><h2>When the game goes quiet</h2><p>Clear old player data after a period without updates.</p></div>
+            <form id="settings"><label for="timeout">Inactivity timeout</label><div class="actions"><select id="timeout"><option value="120000">2 minutes (default)</option><option value="300000">5 minutes</option><option value="600000">10 minutes</option><option value="0">Keep until cleared</option></select><button type="submit" class="secondary">Save</button></div></form>
+            <p class="hint">Saved for your next session. “Keep until cleared” can leave old stats visible after the game closes.</p>
+        </section>
+        <p id="feedback" role="status" aria-live="polite"></p>
+        <footer>Next stream: open Start Zeeps, then launch OBS and the game. To stop the server, press Ctrl+C in the launcher window.</footer>
+    </main>
+</body>
+</html>
